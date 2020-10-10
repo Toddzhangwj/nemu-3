@@ -19,4 +19,9 @@ typedef struct {
 Cache cache[CACHE_WAY_SIZE*CACHE_SET_SIZE];
 
 void cache_init();
+uint32_t cache_read(hwaddr_t addr);
+void cache_write(hwaddr_t addr,size_t len,uint32_t data);
+
+
 #endif
+
