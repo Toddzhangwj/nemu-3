@@ -47,12 +47,12 @@ void cache_write(hwaddr_t addr,size_t len,uint32_t data) {
 			memcpy(cache[i].data+offset,&data,CACHE_BLOCK_SIZE-offset);
 			cache_write(addr+CACHE_BLOCK_SIZE-offset,len-(CACHE_BLOCK_SIZE-offset),data>>(CACHE_BLOCK_SIZE-offset));
 		}	
-
-	   
-	   }
-	   else {	
+		else {	
 					
+	   	}	
+	   	return ;
 	   }
+	   
 	}
 
 	return; 
