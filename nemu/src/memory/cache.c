@@ -5,6 +5,7 @@
 
 void ddr3read(hwaddr_t addr,void *data);
 void ddr3write(hwaddr_t addr, void *data, uint8_t *mask);
+void dram_write(hwaddr_t addr, size_t len, uint32_t data);
 void cache_init() {
 	int i;
 	for(i=0;i<CACHE_WAY_SIZE*CACHE_SET_SIZE;i++) {
