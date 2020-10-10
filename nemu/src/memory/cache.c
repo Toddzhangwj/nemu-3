@@ -56,7 +56,7 @@ void cache_write(hwaddr_t addr,size_t len,uint32_t data) {
 	   
 	}
 
-	return; 
+	
 }
 	
 
