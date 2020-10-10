@@ -35,13 +35,15 @@ uint32_t cache_read(hwaddr_t addr) {
 	return i;
 }
 void cache_write(hwaddr_t addr,size_t len,uint32_t data) {
-	//uint32_t tag = addr>>(CACHE_SET_SIZE_B+CACHE_BLOCK_SIZE_B);
+	uint32_t tag = addr>>(CACHE_SET_SIZE_B+CACHE_BLOCK_SIZE_B);
 	uint32_t set = addr>>(CACHE_BLOCK_SIZE_B);
 	set &=(CACHE_SET_SIZE-1);
 	//uint32_t offset = addr&(CACHE_BLOCK_SIZE-1);
 	int i;
 	for(i=set*CACHE_WAY_SIZE;i<(set+1)*CACHE_WAY_SIZE;i++) {
+	   if(cache[i].valid&&cache[i].tag==tag) {
 		
+	   }
 	}
 
 	return; 
