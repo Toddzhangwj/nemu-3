@@ -23,6 +23,7 @@ uint32_t cache_read(hwaddr_t addr) {
 			return i;
 		}
 	}
+	srand(i);
 
 	return 0;
 }
