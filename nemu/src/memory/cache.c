@@ -48,7 +48,8 @@ void cache_write(hwaddr_t addr,size_t len,uint32_t data) {
 			cache_write(addr+CACHE_BLOCK_SIZE-offset,len-(CACHE_BLOCK_SIZE-offset),data>>(CACHE_BLOCK_SIZE-offset));
 		}	
 		else {	
-			dram_write(addr,len,data);		
+			dram_write(addr,len,data);
+			memcpy(cache[i].data+offset,&data,len);			
 	   	}	
 	   	return ;
 	   }
