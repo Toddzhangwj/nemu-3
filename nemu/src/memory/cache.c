@@ -43,9 +43,9 @@ void cache_write(hwaddr_t addr,size_t len,uint32_t data) {
 	for(i=set*CACHE_WAY_SIZE;i<(set+1)*CACHE_WAY_SIZE;i++) {
 	   if(cache[i].valid&&cache[i].tag==tag) {
 		if(offset+len>CACHE_BLOCK_SIZE) {
-			dram_write(addr,CACHE_BLOCK_SIZE-offset,data);
-			memcpy(cache[i].data+offset,&data,CACHE_BLOCK_SIZE-offset);
-			cache_write(addr+CACHE_BLOCK_SIZE-offset,len-(CACHE_BLOCK_SIZE-offset),data>>(CACHE_BLOCK_SIZE-offset));
+			//dram_write(addr,CACHE_BLOCK_SIZE-offset,data);
+			//memcpy(cache[i].data+offset,&data,CACHE_BLOCK_SIZE-offset);
+			//cache_write(addr+CACHE_BLOCK_SIZE-offset,len-(CACHE_BLOCK_SIZE-offset),data>>(CACHE_BLOCK_SIZE-offset));
 		}	
 		else {	
 			dram_write(addr,len,data);
