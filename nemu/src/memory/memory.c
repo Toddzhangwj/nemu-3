@@ -13,7 +13,7 @@ uint32_t hwaddr_read(hwaddr_t addr, size_t len) {
 	uint8_t tmp[2*BURST_LEN];
 	if(offset+len>CACHE_BLOCK_SIZE) {
 		int id2 = cache_read(addr+CACHE_BLOCK_SIZE-offset);	
-		//memcpy(tmp,cache[id].data+offset,CACHE_BLOCK_SIZE-offset);
+		memcpy(tmp,cache[id].data+offset,CACHE_BLOCK_SIZE-offset);
 		memcpy(tmp+CACHE_BLOCK_SIZE-offset,cache[id2].data,len-(CACHE_BLOCK_SIZE-offset));
 	}
 	else {
