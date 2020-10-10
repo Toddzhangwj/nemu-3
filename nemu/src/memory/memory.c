@@ -17,7 +17,7 @@ uint32_t hwaddr_read(hwaddr_t addr, size_t len) {
 		memcpy(tmp+CACHE_BLOCK_SIZE-offset,cache[id2].data,len-(CACHE_BLOCK_SIZE-offset));
 	}
 	else {
-		memcpy(tmp,cache[id].data+offset,len);
+		//memcpy(tmp,cache[id].data+offset,len);
 	}
 	int zero=0;
 	uint32_t ans = unalign_rw(tmp+zero,4)&(~0u >> ((4 - len) << 3));
