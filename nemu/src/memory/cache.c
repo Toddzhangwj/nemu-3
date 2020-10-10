@@ -29,6 +29,8 @@ uint32_t cache_read(hwaddr_t addr) {
 	//for(j=0;j<CACHE_BLOCK_SIZE/BURST_LEN;j++) {
 	//	ddr3read(block+j*BURST_LEN,cache[i].data+j*BURST_LEN);	
 	//}
+	cache[i].valid = true;
+	cache[i].tag = tag;
 
 	return i;
 }
