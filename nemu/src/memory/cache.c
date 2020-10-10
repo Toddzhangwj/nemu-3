@@ -25,6 +25,11 @@ uint32_t cache_read(hwaddr_t addr) {
 	}
 	srand(i);
 	i = CACHE_WAY_SIZE *set + rand()%CACHE_WAY_SIZE;
+	//int j;
+	//for(j=0;j<CACHE_BLOCK_SIZE/BURST_LEN;j++) {
+	//	ddr3read(block+j*BURST_LEN,cache[i].data+j*BURST_LEN);	
+	//}
+
 	return 0;
 }
 
