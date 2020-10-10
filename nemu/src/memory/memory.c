@@ -8,16 +8,16 @@ void dram_write(hwaddr_t, size_t, uint32_t);
 /* Memory accessing interfaces */
 
 uint32_t hwaddr_read(hwaddr_t addr, size_t len) {
-	//int id = cache_read(addr);
+	int id = cache_read(addr);
 	uint32_t offset = addr&(CACHE_BLOCK_SIZE-1);
 	uint8_t tmp[2*BURST_LEN];
 	if(offset+len>CACHE_BLOCK_SIZE) {
 		int id2 = cache_read(addr+CACHE_BLOCK_SIZE-offset);	
-		//memcpy(tmp,cache[id].data+offset,CACHE_BLOCK_SIZE-offset);
+		memcpy(tmp,cache[id].data+offset,CACHE_BLOCK_SIZE-offset);
 		memcpy(tmp+CACHE_BLOCK_SIZE-offset,cache[id2].data,len-(CACHE_BLOCK_SIZE-offset));
 	}
 	else {
-		//memcpy(tmp,cache[id].data+offset,len);
+		memcpy(tmp,cache[id].data+offset,len);
 	}
 	int zero=0;
 	uint32_t ans = unalign_rw(tmp+zero,4)&(~0u >> ((4 - len) << 3));
