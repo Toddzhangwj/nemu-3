@@ -13,11 +13,17 @@ void cache_init() {
 	}
 }
 uint32_t cache_read(hwaddr_t addr) {
-	//uint32_t tag = addr>>(CACHE_SET_SIZE_B+CACHE_BLOCK_SIZE_B);
+	uint32_t tag = addr>>(CACHE_SET_SIZE_B+CACHE_BLOCK_SIZE_B);
 	uint32_t set = addr>>(CACHE_BLOCK_SIZE_B);
 	set &= (CACHE_SET_SIZE-1);
-	
-	
+	//uint32_t block = (addr>>CACHE_BLOCK_SIZE_B)<<CACHE_BLOCK_SIZE_B;
+	int i;
+	for(i=set*CACHE_WAY_SIZE;i<(set+1)*CACHE_WAY_SIZE;i++) {
+		if(cache[i].valid&&cache[i].tag==tag) {
+			return i;
+		}
+	}
+
 	return 0;
 }
 
