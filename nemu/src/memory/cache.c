@@ -12,4 +12,12 @@ void cache_init() {
 		cache[i].valid = false;	
 	}
 }
+uint32_t cache_read(hwaddr_t addr) {
+	//uint32_t tag = addr>>(CACHE_SET_SIZE_B+CACHE_BLOCK_SIZE_B);
+	uint32_t set = addr>>(CACHE_BLOCK_SIZE_B);
+	set &= (CACHE_SET_SIZE-1);
+	
+	
+	return 0;
+}
 
