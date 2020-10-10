@@ -24,7 +24,7 @@ uint32_t cache_read(hwaddr_t addr) {
 		}
 	}
 	srand(i);
-
+	i = CACHE_WAY_SIZE *set + rand()%CACHE_WAY_SIZE;
 	return 0;
 }
 
