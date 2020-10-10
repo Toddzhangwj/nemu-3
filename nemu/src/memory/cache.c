@@ -34,4 +34,12 @@ uint32_t cache_read(hwaddr_t addr) {
 
 	return i;
 }
+void cache_write(hwaddr_t addr,size_t len,uint32_t data) {
+	//uint32_t tag = addr>>(CACHE_SET_SIZE_B+CACHE_BLOCK_SIZE_B);
+	uint32_t set = addr>>(CACHE_BLOCK_SIZE_B);
+	set &=(CACHE_SET_SIZE-1);
+	return; 
+}
+	
+
 
