@@ -30,6 +30,6 @@ uint32_t cache_read(hwaddr_t addr) {
 	//	ddr3read(block+j*BURST_LEN,cache[i].data+j*BURST_LEN);	
 	//}
 
-	return 0;
+	return i;
 }
 
