@@ -52,6 +52,20 @@ typedef struct {
 		};
 		uint32_t val;
 	} eflags;
+	
+	union {
+		struct {
+			uint32_t PE : 1;
+			uint32_t MP : 1;
+			uint32_t EM : 1;
+			uint32_t TS : 1;
+			uint32_t ET : 1;
+			uint32_t UNDEFINED : 26;
+			uint32_t PG : 1;
+		};
+		uint32_t cr0;
+	};
+
 
 } CPU_state;
 

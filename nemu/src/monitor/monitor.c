@@ -85,8 +85,12 @@ void restart() {
 	load_entry();
 
 	/* Set the initial instruction pointer. */
+	//cpu.eip = ENTRY_START;
+        //cpu.eflags.val = 0x2;
 	cpu.eip = ENTRY_START;
-        cpu.eflags.val = 0x2;
+	cpu.eflags.CF = 1;
+	cpu.eflags.PF = cpu.eflags.ZF = cpu.eflags.SF = cpu.eflags.IF = cpu.eflags.DF  = 0; 		//cpu.eOF = 0;
+	cpu.PG = cpu.ET = cpu.TS = cpu.EM = cpu.MP = 0;
 
 	/* Initialize DRAM. */
 	init_ddr3();
