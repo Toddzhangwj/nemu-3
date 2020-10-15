@@ -76,20 +76,20 @@ void ddr3read(hwaddr_t addr, void *data) {
 
 	dram_addr temp;
 	temp.addr = addr & ~BURST_MASK;
-	uint32_t rank = temp.rank;
-	uint32_t bank = temp.bank;
-	uint32_t row = temp.row;
-	uint32_t col = temp.col;
+	//uint32_t rank = temp.rank;
+	//uint32_t bank = temp.bank;
+	//uint32_t row = temp.row;
+	//uint32_t col = temp.col;
 
-	if(!(rowbufs[rank][bank].valid && rowbufs[rank][bank].row_idx == row) ) {
+	//if(!(rowbufs[rank][bank].valid && rowbufs[rank][bank].row_idx == row) ) {
 		/* read a row into row buffer */
-		memcpy(rowbufs[rank][bank].buf, dram[rank][bank][row], NR_COL);
-		rowbufs[rank][bank].row_idx = row;
-		rowbufs[rank][bank].valid = true;
-	}
+	//	memcpy(rowbufs[rank][bank].buf, dram[rank][bank][row], NR_COL);
+	//	rowbufs[rank][bank].row_idx = row;
+	//	rowbufs[rank][bank].valid = true;
+	//}
 
 	/* burst read */
-	memcpy(data, rowbufs[rank][bank].buf + col, BURST_LEN);
+	//memcpy(data, rowbufs[rank][bank].buf + col, BURST_LEN);
 }
 
 
