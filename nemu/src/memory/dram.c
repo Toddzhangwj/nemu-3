@@ -138,7 +138,7 @@ void ddr3write(hwaddr_t addr, void *data, uint8_t *mask) {
 	memcpy_with_mask(rowbufs[rank][bank].buf + col, data, BURST_LEN, mask);
 
 	/* write back to dram */
-	//memcpy(dram[rank][bank][row], rowbufs[rank][bank].buf, NR_COL);
+	memcpy(dram[rank][bank][row], rowbufs[rank][bank].buf, NR_COL);
 }
 
 uint32_t dram_read(hwaddr_t addr, size_t len) {
