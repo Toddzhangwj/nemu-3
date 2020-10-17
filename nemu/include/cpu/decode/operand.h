@@ -13,7 +13,7 @@ typedef struct {
 		//swaddr_t addr;
 		struct{
 		   swaddr_t addr;
-		   //uint8_t reg;
+		   uint8_t reg;
 		};	
 		uint32_t imm;
 		int32_t simm;
