@@ -91,6 +91,8 @@ void restart() {
 	cpu.eflags.CF = 1;
 	cpu.eflags.PF = cpu.eflags.ZF = cpu.eflags.SF = cpu.eflags.IF = cpu.eflags.DF  = 0; 		//cpu.eOF = 0;
 	cpu.PG = cpu.ET = cpu.TS = cpu.EM = cpu.MP = 0;
+	//cpu.cs.cache.base = 0;
+	//cpu.cs.cache.limit = 0xffffffff;
 
 	/* Initialize DRAM. */
 	init_ddr3();
