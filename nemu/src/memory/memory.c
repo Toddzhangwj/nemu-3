@@ -23,10 +23,9 @@ uint32_t hwaddr_read(hwaddr_t addr, size_t len) {
 		memcpy(temp, cache[first_id].data + offset, len);
 	}
 	//hehe
-	return 0; 
-	//int zero = 0;
-	//uint32_t tmp = unalign_rw(temp + zero, 4) & (~0u >> ((4 - len) << 3));
-	//return tmp;
+	int zero = 0;
+	uint32_t tmp = unalign_rw(temp + zero, 4) & (~0u >> ((4 - len) << 3));
+	return tmp;
 }
 
 void hwaddr_write(hwaddr_t addr, size_t len, uint32_t data) {	//physical address
