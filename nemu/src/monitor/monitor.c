@@ -1,6 +1,4 @@
 #include "nemu.h"
-#include "memory/cache.h"
-#include "memory/tlb.h"
 
 #define ENTRY_START 0x100000
 
@@ -87,21 +85,15 @@ void restart() {
 	load_entry();
 
 	/* Set the initial instruction pointer. */
+	//cpu.eip = ENTRY_START;
+        //cpu.eflags.val = 0x2;
 	cpu.eip = ENTRY_START;
-	cpu.CF = 1;
-	cpu.PF = cpu.ZF = cpu.SF = cpu.IF = cpu.DF = cpu.OF = 0;
-	cpu.cr0.val = cpu.cr3.val = 0;
-
-	cpu.cs.cache.base = 0;
-	cpu.cs.cache.limit = 0xffffffff;
-
-//	cpu.cr3.page_directory_base = 0x137;
-//	cpu.PE = 1;
+	cpu.eflags.CF = 1;
+	cpu.eflags.PF = cpu.eflags.ZF = cpu.eflags.SF = cpu.eflags.IF = cpu.eflags.DF  = 0; 		//cpu.eOF = 0;
+	cpu.PG = cpu.ET = cpu.TS = cpu.EM = cpu.MP = 0;
+	//cpu.cs.cache.base = 0;
+	//cpu.cs.cache.limit = 0xffffffff;
 
 	/* Initialize DRAM. */
 	init_ddr3();
-
-	/* Initialize Cache. */
-	resetCache();
-	resetTLB();
 }
