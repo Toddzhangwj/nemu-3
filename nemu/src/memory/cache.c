@@ -33,7 +33,7 @@ int readCache(hwaddr_t addr) {
 	j = readCache2(addr);
 	srand(i);
 	i = CACHE_WAY_SIZE * set + rand() % CACHE_WAY_SIZE;//random
-	//memcpy(cache[i].data, cache2[j].data, CACHE_BLOCK_SIZE);//CACHE2_BLOCK_SIZE=CACHE_BLOCK_SIZE
+	memcpy(cache[i].data, cache2[j].data, CACHE_BLOCK_SIZE);//CACHE2_BLOCK_SIZE=CACHE_BLOCK_SIZE
 
 /*
 	srand(i);
