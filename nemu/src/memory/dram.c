@@ -47,7 +47,7 @@ void init_ddr3() {
 	int i, j;
 	for(i = 0; i < NR_RANK; i ++) {
 		for(j = 0; j < NR_BANK; j ++) {
-			rowbufs[i][j].valid = false;
+			rowbufs[i][j].valid = true;
 		}
 	}
 }
