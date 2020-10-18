@@ -25,13 +25,13 @@ int readCache(hwaddr_t addr) {
 	//uint32_t block = (addr >> CACHE_BLOCK_SIZE_BIT) << CACHE_BLOCK_SIZE_BIT;
 	//not offset
 	int i = 0;
-	//int j;
+	int j;
 	for(i = CACHE_WAY_SIZE * set; i < CACHE_WAY_SIZE * (set + 1); i++) {
 		if(cache[i].tag == tag && cache[i].valid) return i;
 	}
 
-	//j = readCache2(addr);
-	//srand(i);
+	j = readCache2(addr);
+	srand(i);
 	//i = CACHE_WAY_SIZE * set + rand() % CACHE_WAY_SIZE;//random
 	//memcpy(cache[i].data, cache2[j].data, CACHE_BLOCK_SIZE);//CACHE2_BLOCK_SIZE=CACHE_BLOCK_SIZE
 
