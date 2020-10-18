@@ -12,9 +12,9 @@ void addMemoryTime(uint32_t t) {
 }
 
 void resetCache() {
-	//int i = 0;
+	int i = 0;
 	//MEMORY_TIME = 0;//debug use
-	//for(i = 0; i < CACHE_SET_SIZE * CACHE_WAY_SIZE; i++) cache[i].valid = false;
+	for(i = 0; i < CACHE_SET_SIZE * CACHE_WAY_SIZE; i++) cache[i].valid = false;
 	//for(i = 0; i < CACHE2_SET_SIZE * CACHE2_WAY_SIZE; i++) cache2[i].valid = false, cache2[i].dirty = false;
 }
 
