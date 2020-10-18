@@ -16,9 +16,9 @@ uint32_t hwaddr_read(hwaddr_t addr, size_t len) {
 	uint8_t temp[2 * BURST_LEN];
 	if(offset + len > CACHE_BLOCK_SIZE) {
 		/* data cross the cache block boundary */
-		//int second_id = readCache(addr + CACHE_BLOCK_SIZE - offset);
-		//memcpy(temp, cache[first_id].data + offset, CACHE_BLOCK_SIZE - offset);
-		//memcpy(temp + CACHE_BLOCK_SIZE - offset, cache[second_id].data, len - CACHE_BLOCK_SIZE + offset);
+		int secondid = readCache(addr + CACHE_BLOCK_SIZE - offset);
+		memcpy(temp, cache[first_id].data + offset, CACHE_BLOCK_SIZE - offset);
+		memcpy(temp + CACHE_BLOCK_SIZE - offset, cache[secondid].data, len - CACHE_BLOCK_SIZE + offset);
 	} else {
 		memcpy(temp, cache[first_id].data + offset, len);
 	}
