@@ -20,7 +20,7 @@ uint32_t hwaddr_read(hwaddr_t addr, size_t len) {
 		memcpy(temp, cache[firstid].data + offset, CACHE_BLOCK_SIZE - offset);
 		memcpy(temp + CACHE_BLOCK_SIZE - offset, cache[secondid].data, len - CACHE_BLOCK_SIZE + offset);
 	} else {
-		memcpy(temp, cache[firstid].data + offset, len);
+		//memcpy(temp, cache[firstid].data + offset, len);
 	}
 	//hehe
 	int zero = 0;
