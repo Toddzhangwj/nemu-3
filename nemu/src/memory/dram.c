@@ -74,7 +74,7 @@ static void ddr3_read(hwaddr_t addr, void *data) {
 }
 
 void ddr3_read_public(hwaddr_t addr, void *data) {
-	ddr3_read(addr, data);
+	//ddr3_read(addr, data);
 }
 
 static void ddr3_write(hwaddr_t addr, void *data, uint8_t *mask) {
