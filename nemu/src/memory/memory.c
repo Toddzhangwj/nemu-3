@@ -37,12 +37,12 @@ hwaddr_t page_translate(lnaddr_t addr, size_t len) {
 		hwaddr_t tmp;
 		if((tmp = readTLB(addr & 0xfffff000)) != -1) return (tmp << 12) + (addr & 0xfff);
 		PageEntry dir, page;
-		uint32_t dir_offset = addr >> 22;
-		uint32_t page_offset = ((addr >> 12) & 0x3ff);
+		uint32_t diroffset = addr >> 22;
+		uint32_t pageoffset = ((addr >> 12) & 0x3ff);
 		uint32_t offset = addr & 0xfff;
-		dir.val = hwaddr_read((cpu.cr3.page_directory_base << 12) + (dir_offset << 2), 4);
+		dir.val = hwaddr_read((cpu.cr3.page_directory_base << 12) + (diroffset << 2), 4);
 		Assert(dir.p, "Invalid page.");
-		page.val = hwaddr_read((dir.base << 12) + (page_offset << 2), 4);
+		page.val = hwaddr_read((dir.base << 12) + (pageoffset << 2), 4);
 		Assert(page.p, "Invalid page.");
 	//	hwaddr_t hwaddr = (page.base << 12) + offset;
 		//Assert((hwaddr & 0xfff) + len == ((hwaddr + len) & 0xfff), "Fatal Error!!");
