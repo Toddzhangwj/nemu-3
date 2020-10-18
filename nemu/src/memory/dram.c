@@ -127,7 +127,7 @@ void ddr3_write_public(hwaddr_t addr, void *data, uint8_t *mask) {
 	uint32_t rank = temp.rank;
 	uint32_t bank = temp.bank;
 	uint32_t row = temp.row;
-	//uint32_t col = temp.col;
+	uint32_t col = temp.col;
 
 	if(!(rowbufs[rank][bank].valid && rowbufs[rank][bank].row_idx == row) ) {
 		/* read a row into row buffer */
@@ -137,7 +137,7 @@ void ddr3_write_public(hwaddr_t addr, void *data, uint8_t *mask) {
 	}
 
 	/* burst write */
-	//memcpy_with_mask(rowbufs[rank][bank].buf + col, data, BURST_LEN, mask);
+	memcpy_with_mask(rowbufs[rank][bank].buf + col, data, BURST_LEN, mask);
 
 	/* write back to dram */
 	//memcpy(dram[rank][bank][row], rowbufs[rank][bank].buf, NR_COL);
