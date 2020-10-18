@@ -120,7 +120,7 @@ static void ddr3_write(hwaddr_t addr, void *data, uint8_t *mask) {
 }
 
 void ddr3_write_public(hwaddr_t addr, void *data, uint8_t *mask) {
-	ddr3_write(addr, data, mask);
+	//ddr3_write(addr, data, mask);
 }
 
 uint32_t dram_read(hwaddr_t addr, size_t len) {
