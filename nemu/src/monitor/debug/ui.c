@@ -36,179 +36,100 @@ static int cmd_q(char *args) {
 	return -1;
 }
 
-static int cmd_info(char *args){
-	if(args == NULL) return 0;
-	char opt;
-	sscanf(args, " %c", &opt);
-	if(opt == 'r') {
-		printf("%%eax 0x%x\n", cpu.eax);
-		printf("%%ecx 0x%x\n", cpu.ecx);
-		printf("%%edx 0x%x\n", cpu.edx);
-		printf("%%ebx 0x%x\n", cpu.ebx);
-		printf("%%esp 0x%x\n", cpu.esp);
-		printf("%%ebp 0x%x\n", cpu.ebp);
-		printf("%%esi 0x%x\n", cpu.esi);
-		printf("%%edi 0x%x\n", cpu.edi);
-		printf("%%eip 0x%x\n", cpu.eip);
-	} else if(opt == 'w') {
-		WP *h = getHead();
-		while(h != NULL) {
-			printf("watchpoint %d : %s\n", h->NO, h->expr);
-			h = h->next;
-		}
-	} else if(opt == 's') {
-		printf("%%gdtr base:0x%x limit:0x%x\n", cpu.gdtr.base_addr, cpu.gdtr.seg_limit);
-		const char *S[] = {"es", "cs", "ss", "ds", "fs", "gs"};
-		int i;
-		for(i = 0; i < 6; i++) {
-			printf("%%%s 0x%x base: 0x%x limit: 0x%x\n", S[i], cpu.sr[i].index, cpu.sr[i].cache.base, cpu.sr[i].cache.limit);
-		}
-	} else if(opt == 'c') {
-		printf("%%cr0 0x%x\n", cpu.cr0.val);
-		printf("%%cr3 0x%x 0x%x\n", cpu.cr3.val, cpu.cr3.page_directory_base);
-	}
-	return 0;
-}
-
-static int cmd_si(char *args) {
-	if(args == NULL) cpu_exec(1);
-	else cpu_exec(atoi(args));
-	return 0;
-}
-
-static int cmd_x(char *args) {
-	if(args == NULL) return 0;
-	uint32_t num = 0, addr;
-	bool suc;
-	while(args[0] == ' ')++args;	//trim
-	while('0' <= args[0] && args[0] <= '9') num = (num << 3) + (num << 1) + (args[0] & 15), ++args;
-	//get number
-	addr = expr(args, &suc);
-	if(!suc) {
-		printf("\033[1;31mInvalid expression\n\033[0m");
-		return 0;
-	}
-	while(num) {
-		printf("address 0x%x:", addr);
-		int i;
-		for(i = 0;i < 4; i++)printf(" 0x%x", swaddr_read(addr + i, 1, R_DS));
-		printf("\n");
-		addr += 4;
-		--num;
-	}
-	return 0;
-}
-
-static int cmd_p(char *args) {
-	if(args == NULL) return 0;
-	bool suc;
-	uint32_t ans = expr(args, &suc);	//fix bugs
-	if(!suc) {
-		printf("\033[1;31mInvalid expression\n\033[0m");
-		return 0;
-	}
-	//tokens;
-	printf("Expression %s : 0x%x\n", args, ans);
-	return 0;
-}
-
-static int cmd_w(char *args) {
-	if(args == NULL) return 0;
-	int id = insertExpr(args);
-	if(id == -1) {
-		printf("\033[1;31mInvalid expression\n\033[0m");
-		return 0;
-	}
-	printf("Add watchpoint %d\n", id);
-	return 0;
-}
-
-static int cmd_d(char *args) {
-	if(args == NULL) return 0;
-	int id;
-	sscanf(args, "%d", &id);
-	int ans = removeNode(id);//remove a node
-	if(ans == 0) {
-		printf("\033[1;31mWatchpoint %d doesn't exist\n\033[0m", id);
-	} else {
-		printf("Delete watchpoint %d successfully\n", id);
-	}
-	return 0;
-}
-
-static int cmd_goto(char *args) {
-	if(args == NULL) return 0;
-	bool suc;
-	uint32_t ans = expr(args, &suc);
-	if(!suc) {
-		printf("\033[1;31mInvalid expression\n\033[0m");
-		return 0;
-	}
-	cpu.eip = ans;
-	printf("Goto address 0x%x successfully\n", ans);
-	return 0;
-}
-
-void getFunctionFromAddress(swaddr_t addr, char *s);
-
-static int cmd_bt(char *args) {
-	swaddr_t now_ebp = reg_l(R_EBP);
-	swaddr_t now_ret = cpu.eip;
-	int cnt = 0, i;
-	char name[50];
-	while(now_ebp) {
-		getFunctionFromAddress(now_ret, name);
-		if(name[0] == '\0') break;
-		printf("#%d 0x%x: ", ++cnt, now_ret);
-		printf("%s (", name);
-		for(i = 0; i < 4; i++) {
-			printf("%d", swaddr_read(now_ebp + 8 + i * 4, 4, R_SS));
-			printf("%c", i == 3 ? ')' : ',');
-		}
-		now_ret = swaddr_read(now_ebp + 4, 4, R_SS);
-		now_ebp = swaddr_read(now_ebp, 4, R_SS);
-		printf("\n");
-	}
-	return 0;
-}
-
-static int cmd_page(char *args) {
-	if(args == NULL) return 0;
-	lnaddr_t lnaddr;
-	sscanf(args, "%x", &lnaddr);
-	hwaddr_t hwaddr = page_translate(lnaddr, 1);
-	if(!cpu.cr0.protect_enable || !cpu.cr0.paging) {
-		printf("\033[1;33mPage address convertion is invalid.\n\033[0m");
-	}
-	printf("0x%x -> 0x%x\n", lnaddr, hwaddr);
-	return 0;
-}
-
 static int cmd_help(char *args);
-
+static int cmd_si(char *args);
+static int cmd_info(char *args);
+static int cmd_x(char *args);
+static int cmd_p(char *args); 
+static int cmd_w(char *args);
+static int cmd_d(char *args);
 static struct {
 	char *name;
 	char *description;
-	int (*handler) (char *);	//A pointer (Function)
+	int (*handler) (char *);
 } cmd_table [] = {
 	{ "help", "Display informations about all supported commands", cmd_help },
 	{ "c", "Continue the execution of the program", cmd_c },
 	{ "q", "Exit NEMU", cmd_q },
-	{ "si", "Continue the execution of the program in N steps", cmd_si },
-	{ "info", "Print all registers", cmd_info },
-	{ "x", "Scan the memory", cmd_x },
-	{ "p", "Calculate the value of expression", cmd_p },
-	{ "w", "Add a watchpoint", cmd_w },
-	{ "d", "Delete a watchpoint", cmd_d },
-	{ "goto", "Goto address", cmd_goto },
-	{ "bt", "Print backtrace", cmd_bt },
-	{ "page", "Convert virtual address to physical address", cmd_page },
+	{ "si","Single instruction", cmd_si},
+	{ "info","Information",cmd_info},
+	{ "x","Scan memory",cmd_x},
+	{ "p", "Expression evaluation",cmd_p},
+	{ "w", "Watchpoints", cmd_w},
+	{ "d", "Delete watchpoints",cmd_d},
 	/* TODO: Add more commands */
-
 };
 
 #define NR_CMD (sizeof(cmd_table) / sizeof(cmd_table[0]))
-
+static int cmd_d(char *args){
+	int num;
+	sscanf(args,"%d",&num);
+	delete_wp(num);
+	return 0;
+}
+static int cmd_w(char *args){
+	WP *f;
+	bool success;
+	f = new_wp();
+	f->val = expr(args,&success);
+	if(!success) Assert(1,"Wrong\n");
+	strcpy(f->expr,args);
+	printf("Watchpoint%d: %s\nValue is %d\n",f->NO,f->expr,f->val);
+	return 0;
+}
+static int cmd_p(char *args){
+	uint32_t num;
+	bool success;
+	num = expr(args, &success);
+	if(success) 
+		printf("0x%x:\t%d\n",num,num);
+	else
+		assert(0);
+	return 0;
+}
+static int cmd_x(char *args){
+	int n;
+	int i;
+	bool success;
+	swaddr_t addr;
+	char *num = strtok(NULL," ");
+	sscanf(num,"%d",&n);
+	//args = num + strlen(num) + 1;
+	char *address = strtok(NULL," ");
+	sscanf(address,"%x",&addr);
+	//addr = expr(address,&success);
+	if(!success) assert(1); 
+	for(i=1;i<=n;i++){
+		printf("0x%08x: ",addr);
+		printf("0x%08x\n",swaddr_read(addr,4));
+		addr += 4;
+	}
+	return 0;
+}
+static int cmd_info(char *args){
+	char *arg = strtok(NULL," ");
+	int i;
+	if(arg[0]=='r'){
+		for(i=R_EAX;i<=R_EDI;i++){
+			printf("%s\t0x%08x\n",regsl[i],reg_l(i));
+		}
+		printf("eip\t0x%08x\n",cpu.eip);
+	}else if(arg[0]=='w'){
+			info_wp();
+		
+	}else{
+		assert(0);
+	}
+	return 0;
+}
+static int cmd_si(char *args){
+	int n=1;
+	if(args != NULL){
+		sscanf(args,"%d",&n);
+	}
+	cpu_exec(n);
+	return 0;
+}
 static int cmd_help(char *args) {
 	/* extract the first argument */
 	char *arg = strtok(NULL, " ");
@@ -245,7 +166,6 @@ void ui_mainloop() {
 		 * which may need further parsing
 		 */
 		char *args = cmd + strlen(cmd) + 1;
-//		printf("%s\n",args);
 		if(args >= str_end) {
 			args = NULL;
 		}
@@ -256,7 +176,7 @@ void ui_mainloop() {
 #endif
 
 		int i;
-		for(i = 0; i < NR_CMD; i ++) {	//Brute Force!
+		for(i = 0; i < NR_CMD; i ++) {
 			if(strcmp(cmd, cmd_table[i].name) == 0) {
 				if(cmd_table[i].handler(args) < 0) { return; }
 				break;
