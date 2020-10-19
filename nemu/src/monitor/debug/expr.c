@@ -5,45 +5,41 @@
  */
 #include <sys/types.h>
 #include <regex.h>
-#include <elf.h>
 
 enum {
-	NOTYPE = 0, PLUS, MINUS, STAR, DIV,
-	EQ, NOTEQ, OR, AND,
- 	NOT, NEG, POINTER,
-	LB, RB, HEX, DEC, REG, MARK
-	//WARNING!! NOTEQ first and then NOT !!
-	//WARNING!! HEX first and then DEC !!
+	NOTYPE = 256, EQ, NEQ, AND, OR, MINUS, POINTOR, NUMBER, HNUMBER, REGISTER, MARK
 
 	/* TODO: Add more token types */
 
 };
-const char *PRE = "044553312666000000";	//guess what?
+
 static struct rule {
 	char *regex;
 	int token_type;
+	int priority;
 } rules[] = {
 
 	/* TODO: Add more rules.
 	 * Pay attention to the precedence level of different rules.
 	 */
-
-	{" +",	NOTYPE},				//spaces
-	{"\\+", PLUS},					//plus
-	{"-", MINUS},					//minus
-	{"\\*", STAR},					//star
-	{"/", DIV},						//div
-	{"==", EQ},						//eq
-	{"!=", NOTEQ},					//noteq
-	{"&&", AND},					//and
-	{"\\|\\|", OR},					//or
-	{"!", NOT},						//not
-	{"\\(", LB},					//lb
-	{"\\)", RB},					//rb
-	{"0[xX][0-9a-zA-Z]+", HEX},		//hex
-	{"[0-9]+", DEC},				//dec
-	{"\\$[a-z]+", REG},				//reg
-	{"[a-zA-Z][A-Za-z0-9_]*", MARK},		//mark
+	
+	{"	+", NOTYPE,0},                            // tab
+	{" +",	NOTYPE,0},				// spaces
+	{"\\+", '+',4},					// plus
+	{"==", EQ,3},					// equal
+	{"\\b0[xX][0-9a-fA-F]+\\b",HNUMBER,0},             //hex number
+	{"\\b[0-9]+\\b", NUMBER,0},                       //dex number 
+	{"\\$[a-zA-Z]+",REGISTER,0},			//register
+	{"\\b[a-zA-Z0-9_]+",MARK,0},			//mark
+	{"!=",NEQ,3},					//not equal
+	{"!",'!',6},					//not	
+	{"\\*",'*',5},					//mul
+	{"/",'/',5},					//div
+	{"-",'-',4},					//sub
+	{"&&",AND,2},					//and
+	{"\\|\\|",OR,1},					//or
+	{"\\(",'(',7},					//left bracket
+	{"\\)",')',7},					//right bracket	
 };
 
 #define NR_REGEX (sizeof(rules) / sizeof(rules[0]) )
@@ -57,7 +53,7 @@ void init_regex() {
 	int i;
 	char error_msg[128];
 	int ret;
-
+	
 	for(i = 0; i < NR_REGEX; i ++) {
 		ret = regcomp(&re[i], rules[i].regex, REG_EXTENDED);
 		if(ret != 0) {
@@ -69,10 +65,11 @@ void init_regex() {
 
 typedef struct token {
 	int type;
-	char str[64];
+	int priority;
+	char str[32];
 } Token;
 
-Token tokens[64];
+Token tokens[32];
 int nr_token;
 
 static bool make_token(char *e) {
@@ -86,9 +83,10 @@ static bool make_token(char *e) {
 		/* Try all rules one by one. */
 		for(i = 0; i < NR_REGEX; i ++) {
 			if(regexec(&re[i], e + position, 1, &pmatch, 0) == 0 && pmatch.rm_so == 0) {
-				//char *substr_start = e + position;
+				char *substr_start = e + position;
 				int substr_len = pmatch.rm_eo;
-				//Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s", i, rules[i].regex, position, substr_len, substr_len, substr_start);
+
+				Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s", i, rules[i].regex, position, substr_len, substr_len, substr_start);
 				position += substr_len;
 
 				/* TODO: Now a new token is recognized with rules[i]. Add codes
@@ -97,29 +95,22 @@ static bool make_token(char *e) {
 				 */
 
 				switch(rules[i].token_type) {
-					case NOTYPE:
-						break;											//It's blank!
-					case HEX:case DEC:case REG:case MARK:
-						strncpy(tokens[nr_token].str, e + position - substr_len, substr_len);//regs or number
-						tokens[nr_token].str[substr_len] = '\0';		//add '\0', it's very important
-						//WARNING: 64 may be a little small...
-					default:
-						if(rules[i].token_type == MINUS) {	//solve neg
-							if(nr_token == 0) tokens[nr_token++].type = NEG;
-							else if(PLUS <= tokens[nr_token - 1].type && tokens[nr_token - 1].type <= LB) {
-								tokens[nr_token++].type = NEG;
-							} else tokens[nr_token++].type = MINUS;
-						} else if(rules[i].token_type == STAR) { //solve pointer
-							if(nr_token == 0) tokens[nr_token++].type = POINTER;
-							else if(PLUS <= tokens[nr_token - 1].type && tokens[nr_token - 1].type <= LB) {
-								tokens[nr_token++].type = POINTER;
-							} else tokens[nr_token++].type = STAR;
-						} else {
-							tokens[nr_token++].type = rules[i].token_type;	//other	
-						}
-						break;
-					//panic("please implement me");
+					case NOTYPE: break;
+					case REGISTER:
+						tokens[nr_token].type = rules[i].token_type;
+						tokens[nr_token].priority = rules[i].priority;
+						strncpy(tokens[nr_token].str,substr_start+1,substr_len-1);
+						tokens[nr_token].str[substr_len-1] = '\0';
+						nr_token++;
+						break;							
+					default: 
+						tokens[nr_token].type = rules[i].token_type;
+						tokens[nr_token].priority = rules[i].priority;
+						strncpy(tokens[nr_token].str,substr_start,substr_len);
+						tokens[nr_token].str[substr_len] = '\0';
+						nr_token++;
 				}
+
 				break;
 			}
 		}
@@ -133,98 +124,130 @@ static bool make_token(char *e) {
 	return true; 
 }
 
-bool check_parentheses(int l, int r, bool *success) {//Check the parentheses, use stack.
-	*success = true;
-	if(l > r) return *success = false;
-	int cnt = 0, flag = 1, i;		//A simple stack
-	for(i = l;i <= r; i++){
-		if(tokens[i].type == LB) ++cnt;
-		if(tokens[i].type == RB) --cnt;
-		if(cnt < 0)	return *success = false;//Bad
-		if(i != r && cnt == 0) flag = 0;
-	}
-	if(cnt != 0) return *success = false;
-	return flag;
-}
-
-uint32_t getAddressFromMark(char *mark, bool *success);
-
-uint32_t eval(int l, int r, bool *success) {
-	*success = true;
-	if(l > r) return *success = false;// Bad Expression !!
-	if(l == r){				//It's a number or reg, otherwise bad expression
-		uint32_t tmp;
-		if(tokens[l].type == HEX) {
-			sscanf(tokens[l].str, "%x", &tmp);
-			return tmp;
-		} else if(tokens[l].type == DEC) {
-			sscanf(tokens[l].str, "%d", &tmp);
-			return tmp;
-		} else if(tokens[l].type == REG) {	//read register
-			const char *RE[] = {"eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip"};
-			const char *SE[] = {"es", "cs", "ss", "ds", "fs", "gs"};
-			int i;
-			for(i = 0; i < 9; i++) {
-				if(strcmp(tokens[l].str + 1, RE[i]) == 0) return cpu.gpr[i]._32;
-			}
-			for(i = 0; i < 6; i++) {
-				if(strcmp(tokens[l].str + 1, SE[i]) == 0) return cpu.sr[i].index;
-			}
-			if(strcmp(tokens[l].str + 1, "gdtr") == 0) return cpu.gdtr.base_addr;
-			return *success = false; 
-		} else if(tokens[l].type == MARK) {		//find mark
-			return getAddressFromMark(tokens[l].str, success);
+bool check_parentheses(int l, int r)
+{
+	int i;
+	if(tokens[l].type == '(' && tokens[r].type == ')'){
+		int lc = 0, rc = 0;
+		for(i = l + 1; i < r; i++){
+			if(tokens[i].type == '(') lc++;
+			if(tokens[i].type == ')') rc++;
+			if(rc > lc) return false;
 		}
-		return *success = false;
+		if(rc == lc) return true;
 	}
-	bool flag = check_parentheses(l, r, success);
-	if(!success) return 0;						//Bad
-	if(flag) return eval(l + 1, r - 1, success);//OK, remove parentheses
-	//Now we should find the dominant token
-	int now = -1, type = 0x3f3f3f3f, cnt = 0, i;
-	for(i = l; i <= r; i++) {
-		if(tokens[i].type == LB) ++cnt;
-		if(tokens[i].type == RB) --cnt;
-		if(cnt != 0) continue;	//In mathched parentheses, pass
-		if(PLUS <= tokens[i].type && tokens[i].type <= POINTER) {
-			if(type >= PRE[tokens[i].type]) type = PRE[tokens[i].type], now = i;
+	return false;
+}	
+int dominant_operator(int l,int r){
+	int i,j;
+	int min_priority = 10;
+	int operator = l;
+	for(i = l; i <= r; i++){
+		if(tokens[i].type==NUMBER||tokens[i].type==HNUMBER||tokens[i].type==REGISTER||tokens[i].type==MARK)
+			continue;
+		bool key = true;
+		int cnt = 0;
+		for(j = i-1; j >= l; j--){
+			if(tokens[j].type == '(' && !cnt) {key =false;break;}
+			if(tokens[j].type == '(') cnt--;
+			if(tokens[j].type == ')') cnt++;
+		}
+		if(!key)  continue;
+		if(tokens[i].priority <= min_priority){
+			min_priority = tokens[i].priority;
+			operator = i;
+		}		
+	}
+	return operator;
+}
+uint32_t eval(int l,int r){
+	if(l>r) {Assert(l>r,"Unknown Error!\n"); return 0;}
+	if(l==r){
+		uint32_t num=0;
+		if(tokens[l].type==NUMBER) sscanf(tokens[l].str,"%d",&num);
+		if(tokens[l].type==HNUMBER) sscanf(tokens[l].str,"%x",&num);
+		if(tokens[l].type==REGISTER){
+			if(strlen(tokens[l].str)==3){
+				int i;
+				for(i=R_EAX;i<=R_EDI;i++){
+					if(strcmp(tokens[l].str,regsl[i])==0) break;
+				}
+				if(i>R_EDI)
+					if(strcmp(tokens[i].str,"eip")==0)
+						num=cpu.eip;
+					else
+						Assert(1,"No register named this!\n");
+				else 
+					num = reg_l(i);	
+			}else if(strlen(tokens[l].str)==2) {
+				if(tokens[l].str[1]=='x' || tokens[l].str[1]=='p' || tokens[l].str[1]=='i'){
+					int i;
+					for(i=R_AX;i<=R_DI;i++){
+						if(strcmp(tokens[l].str,regsw[i])==0) break;
+					}
+					num = reg_w(i);
+				} else if(tokens[l].str[1]=='l' || tokens[l].str[1]=='h'){
+					int i;
+					for(i=R_AL;i<=R_BH;i++){
+						if(strcmp(tokens[l].str,regsb[i])==0) break;
+					}
+					num = reg_b(i);
+				}
+				else assert(1);
+			}
+		}
+		//if(tokens[l].type==MARK)
+		return num;
+	}
+	else if(check_parentheses(l,r)==true) {return eval(l+1,r-1);}
+	else{
+		int op = dominant_operator(l,r);
+		if(l == op || tokens[op].type == POINTOR || tokens[op].type == MINUS || tokens[op].type == '!'){
+			uint32_t val = eval(l+1,r);
+			switch(tokens[op].type){
+				case POINTOR:/* current_sreg = R_DS*/;return swaddr_read(val,4);
+				case MINUS: return -val;
+				case '!': return !val;
+				default: Assert(1,"No such operation\n");
+			}
+		}
+		uint32_t val1 = eval(l,op-1);
+		uint32_t val2 = eval(op+1,r);
+		switch(tokens[op].type){
+			case '+': return val1 + val2;
+			case '-': return val1 - val2;
+			case '*': return val1 * val2;
+			case '/': return val1 / val2;
+			case EQ: return val1 == val2;
+			case NEQ: return val1 != val2;
+			case AND: return val1 && val2;
+			case OR: return val1 || val2;
+			default: break;
 		}
 	}
-	assert(now != -1);
-	uint32_t a, b;
-	//solve '!'
-	if(tokens[now].type >= NOT) {
-		//if type>=not, which means other token has been solved
-		//so the first token must be NOT or NEG or POINTER
-		b = eval(l + 1, r, success);
-		if(!(*success)) return *success = false;
-		if(tokens[l].type == NOT) return !b;
-		if(tokens[l].type == NEG) return -b;
-		if(tokens[l].type == POINTER) return swaddr_read(b, 1, R_DS);
-		return *success = false;
-	}
-	a = eval(l, now - 1, success);
-	if(!(*success))return *success = false;
-	b = eval(now + 1, r ,success);
-	if(!(*success))return *success = false;
-	if(tokens[now].type == PLUS) return a + b;
-	if(tokens[now].type == STAR) return a * b;
-	if(tokens[now].type == DIV) return a / b;	
-	if(tokens[now].type == MINUS) return a - b;
-	if(tokens[now].type == EQ) return a == b;
-	if(tokens[now].type == NOTEQ) return a != b;
-	if(tokens[now].type == AND) return a && b;
-	if(tokens[now].type == OR) return a || b;
-	return 0;
+	assert(1);
+	return -123456;
 }
-
 uint32_t expr(char *e, bool *success) {
 	if(!make_token(e)) {
 		*success = false;
 		return 0;
 	}
+	int i;
+	for(i = 0; i < nr_token; i++){
+		if(tokens[i].type=='*'&&(i==0||(tokens[i-1].type!=NUMBER&&tokens[i-1].type!=HNUMBER&&tokens[i-1].type!=REGISTER&&tokens[i-1].type!=MARK&&tokens[i-1].type!=')'))){
+		tokens[i].type = POINTOR;
+		tokens[i].priority = 6;
+		}
+		if(tokens[i].type=='-'&&(i==0||(tokens[i-1].type!=NUMBER&&tokens[i-1].type!=HNUMBER&&tokens[i-1].type!=REGISTER&&tokens[i-1].type!=MARK&&tokens[i-1].type!=')'))){
+		tokens[i].type = MINUS;
+		tokens[i].priority = 6;	
+		}	
+	}
+	*success = true;
 	/* TODO: Insert codes to evaluate the expression. */
 	//panic("please implement me");
-	//Calculate the value
-	return eval(0, nr_token - 1, success);//call eval to calculate the value of expression e
+	
+	return eval(0,nr_token-1);
 }
+		
