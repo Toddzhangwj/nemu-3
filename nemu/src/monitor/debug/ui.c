@@ -136,53 +136,7 @@ static int cmd_d(char *args) {
 	return 0;
 }
 
-static int cmd_goto(char *args) {
-	if(args == NULL) return 0;
-	bool suc;
-	uint32_t ans = expr(args, &suc);
-	if(!suc) {
-		printf("\033[1;31mInvalid expression\n\033[0m");
-		return 0;
-	}
-	cpu.eip = ans;
-	printf("Goto address 0x%x successfully\n", ans);
-	return 0;
-}
 
-void getFunctionFromAddress(swaddr_t addr, char *s);
-
-static int cmd_bt(char *args) {
-	swaddr_t now_ebp = reg_l(R_EBP);
-	swaddr_t now_ret = cpu.eip;
-	int cnt = 0, i;
-	char name[50];
-	while(now_ebp) {
-		getFunctionFromAddress(now_ret, name);
-		if(name[0] == '\0') break;
-		printf("#%d 0x%x: ", ++cnt, now_ret);
-		printf("%s (", name);
-		for(i = 0; i < 4; i++) {
-			printf("%d", swaddr_read(now_ebp + 8 + i * 4, 4, R_SS));
-			printf("%c", i == 3 ? ')' : ',');
-		}
-		now_ret = swaddr_read(now_ebp + 4, 4, R_SS);
-		now_ebp = swaddr_read(now_ebp, 4, R_SS);
-		printf("\n");
-	}
-	return 0;
-}
-
-static int cmd_page(char *args) {
-	if(args == NULL) return 0;
-	lnaddr_t lnaddr;
-	sscanf(args, "%x", &lnaddr);
-	hwaddr_t hwaddr = page_translate(lnaddr, 1);
-	if(!cpu.cr0.protect_enable || !cpu.cr0.paging) {
-		printf("\033[1;33mPage address convertion is invalid.\n\033[0m");
-	}
-	printf("0x%x -> 0x%x\n", lnaddr, hwaddr);
-	return 0;
-}
 
 static int cmd_help(char *args);
 
@@ -200,9 +154,9 @@ static struct {
 	{ "p", "Calculate the value of expression", cmd_p },
 	{ "w", "Add a watchpoint", cmd_w },
 	{ "d", "Delete a watchpoint", cmd_d },
-	{ "goto", "Goto address", cmd_goto },
-	{ "bt", "Print backtrace", cmd_bt },
-	{ "page", "Convert virtual address to physical address", cmd_page },
+	//{ "goto", "Goto address", cmd_goto },
+	//{ "bt", "Print backtrace", cmd_bt },
+	//{ "page", "Convert virtual address to physical address", cmd_page },
 	/* TODO: Add more commands */
 
 };
