@@ -42,8 +42,8 @@ int readCache(hwaddr_t addr) {
 	}
 */
 
-	cache[i].valid = true;
-	cache[i].tag = tag;
+	//cache[i].valid = true;
+	//cache[i].tag = tag;
 	return i;
 }
 
